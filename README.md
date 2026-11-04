@@ -18,6 +18,27 @@ Mockup Studio is a lightweight, local-first editor for creating app and website 
 - PostgreSQL for persistence, managed locally with Docker Compose.
 - `printpdf` for PDF generation.
 
+## Architecture
+
+Mockup Studio is a small, single-process web application. The Rust server owns project and screen management, persistence, and PDF generation; the browser handles the interactive editing experience.
+
+```text
+Browser
+  ├─ HTML pages and forms ──> Axum routes in `src/main.rs`
+  ├─ `static/editor.js` ────> screen document API (`/api/screens/:id`)
+  └─ PDF download ──────────> export routes (`/export/...`)
+                                  │
+                              SQLx / PgPool
+                                  │
+                              PostgreSQL
+```
+
+- **Startup and routing:** `src/main.rs` creates a Tokio runtime, connects a SQLx connection pool using `DATABASE_URL`, runs embedded SQLx migrations, and starts Axum on `127.0.0.1:3000`. Axum serves the project and screen pages, form actions, JSON API, and static assets.
+- **Editor:** The server renders the editor page; `static/editor.js` manages canvas state, component interactions, selection, layers, and undo/redo in the browser. It loads a screen through `GET /api/screens/:id` and saves the versioned JSON document through a debounced `PUT` to the same route. Project and screen names, ordering, and viewport settings are handled by Axum form routes.
+- **Persistence:** PostgreSQL stores projects and their screens. A screen contains its viewport dimensions and device frame, plus a versioned JSONB document of canvas elements. Foreign-key cascading removes a project's screens when the project is deleted. Schema changes live in `migrations/` and are applied at startup.
+- **PDF export:** The export routes load saved screen documents and render them on the server with `printpdf`. A screen export produces one page; a project export produces one page per screen in project order. Text and shapes are written as PDF content rather than a screenshot of the editor.
+- **Local services and commands:** `docker-compose.yml` runs PostgreSQL for local development, while `justfile` provides run, stop, migration, formatting, test, and check commands.
+
 ## Requirements
 
 - Rust stable (edition 2024)
