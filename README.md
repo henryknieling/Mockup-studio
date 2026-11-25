@@ -53,7 +53,7 @@ From the repository root, run:
 just run
 ```
 
-This starts PostgreSQL in the background, applies embedded database migrations on server startup, and serves the app at <http://localhost:3000>. Stop the database with `just stop`.
+This starts PostgreSQL in the background, applies embedded database migrations on server startup, and serves the app at <http://localhost:3000>. Stop the database with `just stop`. If port 3000 is already in use, choose another port with `PORT=3001 just run` and open <http://localhost:3001> instead.
 
 The default database connection is `postgres://mockup:mockup@localhost:5432/mockup_studio`. Set `DATABASE_URL` to use a different local database.
 

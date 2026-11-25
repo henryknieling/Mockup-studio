@@ -119,7 +119,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
     let app = build_router(AppState { db });
-    let addr: SocketAddr = "127.0.0.1:3000".parse()?;
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
+    let addr: SocketAddr = format!("127.0.0.1:{port}").parse()?;
     let listener = tokio::net::TcpListener::bind(addr).await?;
     println!("Mockup Studio is running at http://{addr}");
     axum::serve(listener, app).await?;
@@ -588,7 +589,7 @@ async fn serve_asset(Path(path): Path<String>) -> Result<Response, AppError> {
 
 fn layout(title: &str, body: &str) -> String {
     format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{} · Mockup Studio</title><link rel=\"stylesheet\" href=\"/assets/style.css\"></head><body>{body}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{} · Mockup Studio</title><link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap\"><link rel=\"stylesheet\" href=\"/assets/style.css\"></head><body>{body}</body></html>",
         esc(title)
     )
 }
